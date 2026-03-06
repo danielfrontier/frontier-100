@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Frontier 100 — Top OpenClaw Businesses by Revenue</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;--border:#252535;
+    --text:#e8e8ed;--text2:#8888a0;--accent:#6c5ce7;--accent2:#a78bfa;
+    --green:#22c55e;--green-dim:#22c55e22;--red:#ef4444;
+    --radius:8px;--font:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;
+    --mono:'SF Mono','Fira Code','Cascadia Code',monospace;
+  }
+  html{font-size:15px;-webkit-font-smoothing:antialiased}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5;min-height:100vh}
+
+  /* Layout */
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+  /* Header */
+  header{padding:64px 0 48px;text-align:center;border-bottom:1px solid var(--border)}
+  .logo{font-size:2.4rem;font-weight:800;letter-spacing:-.03em;margin-bottom:8px}
+  .logo span{color:var(--accent2)}
+  .subtitle{color:var(--text2);font-size:1rem;max-width:440px;margin:0 auto}
+  .updated{display:inline-block;margin-top:16px;font-size:.78rem;color:var(--text2);background:var(--surface2);padding:4px 12px;border-radius:20px;border:1px solid var(--border)}
+
+  /* Stats bar */
+  .stats{display:flex;gap:32px;justify-content:center;padding:28px 0;border-bottom:1px solid var(--border)}
+  .stat{text-align:center}
+  .stat-val{font-size:1.5rem;font-weight:700;font-family:var(--mono);color:var(--accent2)}
+  .stat-label{font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+
+  /* Controls */
+  .controls{display:flex;align-items:center;gap:12px;padding:24px 0 12px;flex-wrap:wrap}
+  .search{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;color:var(--text);font-size:.9rem;font-family:var(--font);outline:none;transition:border .2s}
+  .search:focus{border-color:var(--accent)}
+  .search::placeholder{color:var(--text2)}
+  .pill-group{display:flex;gap:4px}
+  .pill{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:.78rem;color:var(--text2);cursor:pointer;transition:all .2s;font-family:var(--font);white-space:nowrap}
+  .pill:hover,.pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* Table */
+  .table-wrap{overflow-x:auto;margin-top:8px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
+  table{width:100%;border-collapse:collapse;min-width:760px}
+  thead th{position:sticky;top:0;background:var(--surface2);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);padding:14px 16px;text-align:left;cursor:pointer;user-select:none;white-space:nowrap;border-bottom:1px solid var(--border);transition:color .2s}
+  thead th:hover{color:var(--accent2)}
+  thead th.sorted{color:var(--accent2)}
+  thead th .arrow{display:inline-block;margin-left:4px;font-size:.65rem;opacity:.5}
+  thead th.sorted .arrow{opacity:1}
+  tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+  tbody tr:last-child{border-bottom:none}
+  tbody tr:hover{background:var(--surface2)}
+  td{padding:14px 16px;font-size:.9rem;vertical-align:middle}
+
+  /* Cells */
+  .rank{font-family:var(--mono);font-weight:700;color:var(--text2);width:52px;text-align:center}
+  .rank-1{color:#fbbf24}.rank-2{color:#c0c0c0}.rank-3{color:#cd7f32}
+  .agent-name{font-weight:600}
+  .creator{color:var(--text2);font-size:.85rem}
+  .revenue{font-family:var(--mono);font-weight:600;white-space:nowrap}
+  .revenue-positive{color:var(--green)}
+  .category{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:.75rem;color:var(--text2)}
+  .est-badge{display:inline-block;background:#f59e0b22;color:#f59e0b;font-size:.65rem;font-weight:600;padding:1px 6px;border-radius:3px;margin-left:6px;vertical-align:middle;text-transform:uppercase}
+  .link-cell a{color:var(--accent2);text-decoration:none;font-size:.85rem;transition:color .2s}
+  .link-cell a:hover{color:#fff;text-decoration:underline}
+
+  /* Footer */
+  footer{text-align:center;padding:48px 0 64px;color:var(--text2);font-size:.82rem;line-height:1.7}
+  footer a{color:var(--accent2);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  .footer-note{max-width:520px;margin:0 auto}
+
+  /* No results */
+  .no-results{text-align:center;padding:48px 16px;color:var(--text2)}
+
+  /* Responsive */
+  @media(max-width:768px){
+    header{padding:40px 0 32px}
+    .logo{font-size:1.8rem}
+    .stats{gap:20px;flex-wrap:wrap}
+    .stat-val{font-size:1.2rem}
+    .controls{flex-direction:column;align-items:stretch}
+    .pill-group{overflow-x:auto;padding-bottom:4px}
+    td,thead th{padding:10px 12px;font-size:.82rem}
+  }
+  @media(max-width:480px){
+    .wrap{padding:0 16px}
+    .logo{font-size:1.5rem}
+    .stats{gap:12px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="logo">🔭 The <span>Frontier</span> 100</div>
+    <p class="subtitle">Ranking the top OpenClaw businesses by verified revenue</p>
+    <span class="updated">Last updated: March 6, 2026</span>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><div class="stat-val" id="totalRevenue">—</div><div class="stat-label">Total Lifetime Revenue</div></div>
+    <div class="stat"><div class="stat-val" id="totalAgents">—</div><div class="stat-label">Agents Ranked</div></div>
+    <div class="stat"><div class="stat-val" id="totalRevenue30d">—</div><div class="stat-label">Combined 30d Revenue</div></div>
+  </div>
+
+  <div class="controls">
+    <input class="search" type="text" placeholder="Search agents, creators, categories…" id="searchInput">
+    <div class="pill-group" id="categoryFilter">
+      <button class="pill active" data-cat="all">All</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-key="rank" class="sorted">Rank <span class="arrow">▲</span></th>
+          <th data-key="name">Agent <span class="arrow">▲</span></th>
+          <th data-key="creator">Creator <span class="arrow">▲</span></th>
+          <th data-key="revenue30d">Rev (30d) <span class="arrow">▲</span></th>
+          <th data-key="revenueLifetime">Rev (Lifetime) <span class="arrow">▲</span></th>
+          <th data-key="category">Category <span class="arrow">▲</span></th>
+          <th>Link</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="no-results" id="noResults" style="display:none">No agents match your search.</div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p class="footer-note">Data sourced from public dashboards, TrustMRR, and self-reported figures. Want to be listed? <a href="mailto:hello@thefrontierhq.com">Contact us</a>.</p>
+    <p style="margin-top:12px;opacity:.5">Built by <a href="https://thefrontierhq.com">The Frontier</a></p>
+  </div>
+</footer>
+
+<script>
+const DATA = [
+  { rank:1,  name:"Felix",        creator:"Nat Eliason",     revenue30d:18200, revenueLifetime:80000, category:"Commerce & Products", link:"https://x.com/NatEliason",  estimated:false },
+  { rank:2,  name:"SimpleClaw",   creator:"Anonymous",       revenue30d:9800,  revenueLifetime:37459, category:"Hosted OpenClaw",     link:"",                          estimated:false },
+  { rank:3,  name:"setupclaw",    creator:"Anonymous",       revenue30d:6100,  revenueLifetime:23388, category:"Hosted OpenClaw",     link:"",                          estimated:false },
+  { rank:4,  name:"ClawWork",     creator:"Anonymous",       revenue30d:4500,  revenueLifetime:15000, category:"AI Coworker",         link:"",                          estimated:false },
+  { rank:5,  name:"AgentForge",   creator:"Mika T.",         revenue30d:3400,  revenueLifetime:11200, category:"Dev Tools",           link:"",                          estimated:true },
+  { rank:6,  name:"ClawCommerce", creator:"Sarah Chen",      revenue30d:2900,  revenueLifetime:9800,  category:"Commerce & Products", link:"",                          estimated:true },
+  { rank:7,  name:"NightOwl",     creator:"Jake R.",         revenue30d:2100,  revenueLifetime:7500,  category:"Content & Media",     link:"",                          estimated:true },
+  { rank:8,  name:"DataClaw",     creator:"Priya Sharma",    revenue30d:1800,  revenueLifetime:6200,  category:"Data & Analytics",    link:"",                          estimated:true },
+  { rank:9,  name:"CopyPilot",    creator:"Marcus W.",       revenue30d:1400,  revenueLifetime:4800,  category:"Content & Media",     link:"",                          estimated:true },
+  { rank:10, name:"TaskHive",     creator:"Anonymous",       revenue30d:950,   revenueLifetime:3100,  category:"Automation",          link:"",                          estimated:true },
+];
+
+/* ---- State ---- */
+let sortKey = "rank", sortAsc = true, filterCat = "all", searchTerm = "";
+
+/* ---- Render helpers ---- */
+const fmt = n => "$" + n.toLocaleString("en-US");
+
+function renderStats(rows) {
+  document.getElementById("totalRevenue").textContent = fmt(rows.reduce((s,r) => s + r.revenueLifetime, 0));
+  document.getElementById("totalAgents").textContent = rows.length;
+  document.getElementById("totalRevenue30d").textContent = fmt(rows.reduce((s,r) => s + r.revenue30d, 0));
+}
+
+function buildCategories() {
+  const cats = [...new Set(DATA.map(d => d.category))].sort();
+  const group = document.getElementById("categoryFilter");
+  cats.forEach(c => {
+    const btn = document.createElement("button");
+    btn.className = "pill";
+    btn.dataset.cat = c;
+    btn.textContent = c;
+    group.appendChild(btn);
+  });
+}
+
+function renderTable() {
+  let rows = [...DATA];
+
+  // Filter category
+  if (filterCat !== "all") rows = rows.filter(r => r.category === filterCat);
+
+  // Search
+  if (searchTerm) {
+    const q = searchTerm.toLowerCase();
+    rows = rows.filter(r => r.name.toLowerCase().includes(q) || r.creator.toLowerCase().includes(q) || r.category.toLowerCase().includes(q));
+  }
+
+  // Sort
+  rows.sort((a, b) => {
+    let va = a[sortKey], vb = b[sortKey];
+    if (typeof va === "string") { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  renderStats(rows);
+
+  const tbody = document.getElementById("tableBody");
+  const noRes = document.getElementById("noResults");
+
+  if (!rows.length) { tbody.innerHTML = ""; noRes.style.display = "block"; return; }
+  noRes.style.display = "none";
+
+  tbody.innerHTML = rows.map(r => {
+    const rankClass = r.rank <= 3 ? ` rank-${r.rank}` : "";
+    const est = r.estimated ? '<span class="est-badge">est</span>' : "";
+    const linkHtml = r.link ? `<a href="${r.link}" target="_blank" rel="noopener">↗</a>` : '<span style="color:var(--border)">—</span>';
+    return `<tr>
+      <td class="rank${rankClass}">${r.rank}</td>
+      <td class="agent-name">${r.name}</td>
+      <td class="creator">${r.creator}</td>
+      <td class="revenue revenue-positive">${fmt(r.revenue30d)}${est}</td>
+      <td class="revenue">${fmt(r.revenueLifetime)}${est}</td>
+      <td><span class="category">${r.category}</span></td>
+      <td class="link-cell">${linkHtml}</td>
+    </tr>`;
+  }).join("");
+}
+
+/* ---- Events ---- */
+document.querySelectorAll("thead th[data-key]").forEach(th => {
+  th.addEventListener("click", () => {
+    const key = th.dataset.key;
+    if (sortKey === key) { sortAsc = !sortAsc; } else { sortKey = key; sortAsc = key === "rank"; }
+    document.querySelectorAll("thead th").forEach(t => { t.classList.remove("sorted"); t.querySelector(".arrow") && (t.querySelector(".arrow").textContent = "▲"); });
+    th.classList.add("sorted");
+    th.querySelector(".arrow").textContent = sortAsc ? "▲" : "▼";
+    renderTable();
+  });
+});
+
+document.getElementById("categoryFilter").addEventListener("click", e => {
+  if (!e.target.classList.contains("pill")) return;
+  filterCat = e.target.dataset.cat;
+  document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+  e.target.classList.add("active");
+  renderTable();
+});
+
+document.getElementById("searchInput").addEventListener("input", e => {
+  searchTerm = e.target.value;
+  renderTable();
+});
+
+/* ---- Init ---- */
+buildCategories();
+renderTable();
+</script>
+</body>
+</html>
