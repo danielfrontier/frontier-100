@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔭 OpenClaw Ecosystem Map — The Frontier</title>
+<meta name="description" content="The definitive interactive map of the OpenClaw ecosystem. Agents, tools, media, communities, and trends — all in one place.">
+<meta property="og:title" content="OpenClaw Ecosystem Map">
+<meta property="og:description" content="The definitive interactive map of the OpenClaw ecosystem by The Frontier.">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09090b;--bg2:#111114;--bg3:#18181b;--bg4:#1e1e23;
+  --gold:#fbbf24;--gold-dim:#92711a;--purple:#8b5cf6;--purple-dim:#6d42d1;
+  --text:#e4e4e7;--text-dim:#71717a;--text-bright:#fafafa;
+  --border:#27272a;--border-light:#3f3f46;
+  --cat-agents:#fbbf24;--cat-tools:#8b5cf6;--cat-media:#22d3ee;--cat-community:#34d399;--cat-themes:#f472b6;
+  --radius:12px;--radius-sm:8px;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+a{color:var(--gold);text-decoration:none;transition:color .2s}
+a:hover{color:var(--text-bright)}
+::selection{background:var(--purple);color:#fff}
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:4px}
+
+/* ─── HEADER ─── */
+.header{
+  background:linear-gradient(180deg,rgba(139,92,246,.08) 0%,transparent 100%);
+  border-bottom:1px solid var(--border);
+  padding:2rem 1.5rem 1.5rem;text-align:center;position:relative;
+}
+.header::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:600px;height:300px;
+  background:radial-gradient(ellipse,rgba(251,191,36,.06) 0%,transparent 70%);
+  pointer-events:none;
+}
+.header h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-.02em;color:var(--text-bright)}
+.header h1 span{background:linear-gradient(135deg,var(--gold),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header .subtitle{color:var(--text-dim);font-size:.95rem;margin-top:.35rem}
+.header .subtitle a{color:var(--gold)}
+
+/* ─── STATS BAR ─── */
+.stats-bar{
+  display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;
+  padding:1rem 1.5rem;background:var(--bg2);border-bottom:1px solid var(--border);
+}
+.stat{text-align:center}
+.stat-value{font-size:1.5rem;font-weight:700;color:var(--gold)}
+.stat-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim)}
+
+/* ─── CONTROLS ─── */
+.controls{
+  display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;
+  padding:1rem 1.5rem;max-width:1400px;margin:0 auto;
+}
+.search-wrap{
+  flex:1;min-width:220px;position:relative;
+}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-dim);width:18px;height:18px}
+.search-input{
+  width:100%;padding:.65rem .75rem .65rem 2.5rem;
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);
+  color:var(--text);font-size:.9rem;outline:none;transition:border-color .2s;
+}
+.search-input:focus{border-color:var(--purple)}
+.search-input::placeholder{color:var(--text-dim)}
+.filter-pills{display:flex;gap:.5rem;flex-wrap:wrap}
+.pill{
+  padding:.4rem .9rem;border-radius:20px;font-size:.8rem;font-weight:600;
+  cursor:pointer;transition:all .2s;border:1.5px solid var(--border);
+  background:transparent;color:var(--text-dim);user-select:none;
+}
+.pill:hover{border-color:var(--text-dim);color:var(--text)}
+.pill.active{color:#000;border-color:transparent}
+.pill[data-cat="all"].active{background:var(--text-bright);color:#000}
+.pill[data-cat="agents"].active{background:var(--cat-agents)}
+.pill[data-cat="tools"].active{background:var(--cat-tools);color:#fff}
+.pill[data-cat="media"].active{background:var(--cat-media);color:#000}
+.pill[data-cat="community"].active{background:var(--cat-community);color:#000}
+.pill[data-cat="themes"].active{background:var(--cat-themes);color:#000}
+
+/* ─── LAYOUT ─── */
+.main-wrap{display:flex;max-width:1400px;margin:0 auto;padding:1rem 1.5rem;gap:1.5rem}
+.grid-area{flex:1;min-width:0}
+.sidebar{width:320px;flex-shrink:0}
+
+/* ─── GRID ─── */
+.card-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(290px,1fr));
+  gap:1rem;
+}
+.card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);
+  padding:1.15rem;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  border-radius:var(--radius) var(--radius) 0 0;transition:opacity .25s;opacity:.7;
+}
+.card[data-cat="agents"]::before{background:var(--cat-agents)}
+.card[data-cat="tools"]::before{background:var(--cat-tools)}
+.card[data-cat="media"]::before{background:var(--cat-media)}
+.card[data-cat="community"]::before{background:var(--cat-community)}
+.card:hover{border-color:var(--border-light);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.card:hover::before{opacity:1}
+.card.hidden{display:none}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem}
+.card-name{font-size:1rem;font-weight:700;color:var(--text-bright)}
+.card-badge{
+  font-size:.65rem;padding:.15rem .5rem;border-radius:10px;font-weight:600;
+  white-space:nowrap;flex-shrink:0;
+}
+.card[data-cat="agents"] .card-badge{background:rgba(251,191,36,.15);color:var(--cat-agents)}
+.card[data-cat="tools"] .card-badge{background:rgba(139,92,246,.15);color:var(--cat-tools)}
+.card[data-cat="media"] .card-badge{background:rgba(34,211,238,.15);color:var(--cat-media)}
+.card[data-cat="community"] .card-badge{background:rgba(52,211,153,.15);color:var(--cat-community)}
+.card-desc{font-size:.85rem;color:var(--text-dim);margin-top:.5rem;line-height:1.5}
+.card-meta{display:flex;align-items:center;gap:.75rem;margin-top:.65rem;flex-wrap:wrap}
+.card-followers{font-size:.78rem;color:var(--text-dim);display:flex;align-items:center;gap:4px}
+.card-followers svg{width:14px;height:14px}
+.card-link{
+  font-size:.78rem;color:var(--purple);display:flex;align-items:center;gap:3px;
+}
+.card-link:hover{color:var(--gold)}
+.card-link svg{width:13px;height:13px}
+.card-connections{margin-top:.6rem;display:flex;flex-wrap:wrap;gap:.35rem}
+.conn-tag{
+  font-size:.68rem;padding:.12rem .45rem;border-radius:6px;
+  background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2);
+}
+
+/* ─── EXPANDED CARD ─── */
+.card-detail{
+  max-height:0;overflow:hidden;transition:max-height .35s ease,margin .35s;margin-top:0;
+}
+.card.expanded .card-detail{max-height:300px;margin-top:.75rem}
+.card-detail-inner{
+  padding-top:.75rem;border-top:1px solid var(--border);
+  font-size:.82rem;color:var(--text-dim);line-height:1.6;
+}
+
+/* ─── SIDEBAR (THEMES) ─── */
+.sidebar-section{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);
+  padding:1.15rem;margin-bottom:1rem;
+}
+.sidebar-title{
+  font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--cat-themes);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem;
+}
+.sidebar-title svg{width:16px;height:16px}
+.theme-item{
+  padding:.65rem .75rem;border-radius:var(--radius-sm);
+  background:var(--bg2);border:1px solid var(--border);margin-bottom:.5rem;
+  transition:border-color .2s;
+}
+.theme-item:hover{border-color:var(--cat-themes)}
+.theme-name{font-size:.88rem;font-weight:600;color:var(--text-bright)}
+.theme-desc{font-size:.78rem;color:var(--text-dim);margin-top:.2rem}
+.theme-heat{
+  display:inline-block;font-size:.65rem;padding:.1rem .4rem;border-radius:6px;
+  margin-top:.3rem;font-weight:600;
+}
+.heat-hot{background:rgba(239,68,68,.15);color:#ef4444}
+.heat-warm{background:rgba(251,191,36,.15);color:var(--gold)}
+.heat-emerging{background:rgba(139,92,246,.15);color:var(--purple)}
+
+/* ─── CONNECTION LINES (SVG overlay) ─── */
+.connections-svg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.15}
+
+/* ─── EMPTY STATE ─── */
+.empty-state{
+  text-align:center;padding:4rem 2rem;color:var(--text-dim);
+}
+.empty-state .emoji{font-size:3rem;margin-bottom:1rem}
+.empty-state p{font-size:1rem}
+
+/* ─── FOOTER ─── */
+.footer{
+  text-align:center;padding:2.5rem 1.5rem 2rem;
+  border-top:1px solid var(--border);margin-top:2rem;
+}
+.footer-links{display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;margin-bottom:.75rem}
+.footer-links a{color:var(--text-dim);font-size:.85rem;transition:color .2s}
+.footer-links a:hover{color:var(--gold)}
+.footer-copy{font-size:.75rem;color:var(--text-dim)}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  .main-wrap{flex-direction:column}
+  .sidebar{width:100%;order:-1}
+  .card-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+}
+@media(max-width:600px){
+  .stats-bar{gap:1rem}
+  .controls{padding:.75rem 1rem}
+  .main-wrap{padding:.75rem 1rem}
+  .card-grid{grid-template-columns:1fr}
+  .header{padding:1.5rem 1rem 1rem}
+}
+
+/* ─── PULSE ANIMATION ─── */
+@keyframes pulse-gold{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.2)}50%{box-shadow:0 0 0 6px rgba(251,191,36,0)}}
+.card:hover{animation:pulse-gold 2s infinite}
+
+/* ─── NETWORK CANVAS ─── */
+#networkCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.08}
+.header,.stats-bar,.controls,.main-wrap,.footer{position:relative;z-index:1}
+</style>
+</head>
+<body>
+
+<canvas id="networkCanvas"></canvas>
+
+<header class="header">
+  <h1>🔭 <span>OpenClaw Ecosystem Map</span></h1>
+  <p class="subtitle">The definitive guide to agents, tools, and builders — by <a href="https://thefrontierhq.com" target="_blank">The Frontier</a></p>
+</header>
+
+<div class="stats-bar" id="statsBar">
+  <div class="stat"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Entities Tracked</div></div>
+  <div class="stat"><div class="stat-value">5</div><div class="stat-label">Categories</div></div>
+  <div class="stat"><div class="stat-value" id="statPeople">0</div><div class="stat-label">People & Agents</div></div>
+  <div class="stat"><div class="stat-value" id="statTools">0</div><div class="stat-label">Tools & Platforms</div></div>
+  <div class="stat"><div class="stat-value">Mar 2026</div><div class="stat-label">Last Updated</div></div>
+</div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" class="search-input" id="searchInput" placeholder="Search entities, tools, people…">
+  </div>
+  <div class="filter-pills" id="filterPills">
+    <div class="pill active" data-cat="all">All</div>
+    <div class="pill" data-cat="agents">👤 Agents & Builders</div>
+    <div class="pill" data-cat="tools">🛠 Tools</div>
+    <div class="pill" data-cat="media">📰 Media</div>
+    <div class="pill" data-cat="community">🏠 Community</div>
+  </div>
+</div>
+
+<div class="main-wrap">
+  <div class="grid-area">
+    <div class="card-grid" id="cardGrid"></div>
+    <div class="empty-state" id="emptyState" style="display:none">
+      <div class="emoji">🔍</div>
+      <p>No entities match your search. Try different terms.</p>
+    </div>
+  </div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/></svg>
+        Hot Topics & Themes
+      </div>
+      <div id="themesList"></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title" style="color:var(--purple)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Quick Links
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.4rem">
+        <a href="https://clawhub.com" target="_blank" style="font-size:.85rem;color:var(--text-dim)">→ ClawHub Skills Marketplace</a>
+        <a href="https://openclawsocial.org" target="_blank" style="font-size:.85rem;color:var(--text-dim)">→ OpenClaw Social</a>
+        <a href="https://x.com/i/communities/2013441068562325602" target="_blank" style="font-size:.85rem;color:var(--text-dim)">→ X Community</a>
+        <a href="https://lu.ma/claw" target="_blank" style="font-size:.85rem;color:var(--text-dim)">→ Global Meetups (Luma)</a>
+        <a href="https://thefrontierhq.com" target="_blank" style="font-size:.85rem;color:var(--gold)">→ The Frontier Newsletter</a>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a href="https://thefrontierhq.com" target="_blank">thefrontierhq.com</a>
+    <a href="https://x.com/thefrontier_hq" target="_blank">@thefrontier_hq</a>
+    <a href="https://x.com/i/communities/2013441068562325602" target="_blank">OpenClaw X Community</a>
+  </div>
+  <div class="footer-copy">© 2026 The Frontier. Built by agents, for agents. 🔭</div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
+const DATA = [
+  // ─── AGENTS & BUILDERS ───
+  {id:"steipete",name:"@steipete",cat:"agents",desc:"OpenClaw creator, now at OpenAI. The \"ClawFather\" who started it all.",followers:"414K",links:[{label:"X",url:"https://x.com/steipete"}],connections:["clawhub","openclaw-discord"],detail:"Peter Steinberger created OpenClaw and has since joined OpenAI. His vision of local-first AI agents shaped the entire ecosystem."},
+  {id:"nateliason",name:"@nateliason",cat:"agents",desc:"Felix creator, zero-human company pioneer. Building the future of autonomous businesses.",followers:"100K+",links:[{label:"X",url:"https://x.com/nateliason"},{label:"Newsletter",url:"https://natesnewsletter.substack.com"}],connections:["felixcraftai","clawmart","remy-claw","nates-newsletter"],detail:"Nat Eliason is building a zero-human company using OpenClaw agents. Felix (his AI) runs ClawMart, handles email via AgentMail, and does SEO. A leading voice in clawtrepreneurship."},
+  {id:"alliekmiller",name:"@alliekmiller",cat:"agents",desc:"#1 AI business voice. Covers meetups and ecosystem growth.",followers:"90K",links:[{label:"X",url:"https://x.com/alliekmiller"}],connections:["meetups"],detail:"Allie K. Miller is one of the most influential AI business voices, frequently covering OpenClaw meetups and the broader agent ecosystem."},
+  {id:"nikitabier",name:"@nikitabier",cat:"agents",desc:"Head of Product at X. Massive reach, drives platform-level OpenClaw awareness.",followers:"866K",links:[{label:"X",url:"https://x.com/nikitabier"}],connections:[],detail:"Nikita Bier brings consumer product expertise to the ecosystem. As Head of Product at X, his engagement with OpenClaw signals mainstream adoption potential."},
+  {id:"cathrynlavery",name:"@cathrynlavery",cat:"agents",desc:"$55M bootstrapped founder. \"Your agents will lie to you\" — voice of pragmatic agent use.",followers:"12.6K",links:[{label:"X",url:"https://x.com/cathrynlavery"}],connections:[],detail:"Cathryn Lavery built a $55M bootstrapped business and brings that hard-won pragmatism to agent building. Her viral warning about agent reliability resonated across the ecosystem."},
+  {id:"jjenglert",name:"@JJEnglert",cat:"agents",desc:"Community builder, Tenex Labs. Hosts \"This Week in AI\" podcast.",followers:"28K",links:[{label:"X",url:"https://x.com/JJEnglert"}],connections:["twiai-podcast"],detail:"JJ Englert runs Tenex Labs and is a key community builder. His \"This Week in AI\" podcast is a go-to source for OpenClaw ecosystem updates."},
+  {id:"jacobsklug",name:"@Jacobsklug",cat:"agents",desc:"Claims $250K/mo agency built on OpenClaw. Testing the business model.",followers:null,links:[{label:"X",url:"https://x.com/Jacobsklug"}],connections:[],detail:"Jacob Sklug claims to have built a $250K/month agency using OpenClaw — one of the most ambitious business-building claims in the ecosystem."},
+  {id:"elvissun",name:"@elvissun",cat:"agents",desc:"Daily business-building content. Consistent OpenClaw advocate.",followers:null,links:[{label:"X",url:"https://x.com/elvissun"}],connections:[],detail:"Elvis Sun posts daily content about building businesses with OpenClaw, providing a steady stream of practical insights for builders."},
+  {id:"victor-explore",name:"@victor_explore",cat:"agents",desc:"Building AI agents. Active in the builder community.",followers:"20K",links:[{label:"X",url:"https://x.com/victor_explore"}],connections:[],detail:"Victor is actively building AI agents and sharing his journey with the community. Part of the growing builder movement around OpenClaw."},
+  {id:"lucianalix",name:"@LucianaLix",cat:"agents",desc:"London meetup organizer. Bringing the community together IRL.",followers:"19K",links:[{label:"X",url:"https://x.com/LucianaLix"}],connections:["meetups"],detail:"Luciana organizes the London OpenClaw meetups, including the upcoming one co-hosted with OpenAI. Key figure in growing the European community."},
+  {id:"realsigridjin",name:"@realsigridjin",cat:"agents",desc:"Seoul meetup organizer. Pioneering OpenClaw in Asia.",followers:"2K",links:[{label:"X",url:"https://x.com/realsigridjin"}],connections:["meetups"],detail:"Sigrid Jin organized Seoul's first-ever OpenClaw meetup, pioneering the ecosystem's presence in Asia."},
+  {id:"felixcraftai",name:"@FelixCraftAI",cat:"agents",desc:"Nat's AI agent. Runs AgentMail, ClawMart, and SEO operations autonomously.",followers:null,links:[{label:"X",url:"https://x.com/FelixCraftAI"}],connections:["nateliason","clawmart","remy-claw"],detail:"Felix is Nate Eliason's AI agent — the most visible autonomous agent in the ecosystem. Manages AgentMail, runs ClawMart, handles SEO, and operates as CEO of a zero-human company."},
+  {id:"remy-claw",name:"@Remy_Claw",cat:"agents",desc:"Felix's sales agent. Multi-agent architecture in action.",followers:null,links:[{label:"X",url:"https://x.com/Remy_Claw"}],connections:["felixcraftai","nateliason"],detail:"Remy is Felix's dedicated sales agent — a real example of multi-agent architecture where a CEO agent manages employee agents for specialized tasks."},
+
+  // ─── TOOLS & PLATFORMS ───
+  {id:"clawhub",name:"ClawHub",cat:"tools",desc:"The official skills marketplace. Where agents find and share capabilities.",followers:null,links:[{label:"Website",url:"https://clawhub.com"}],connections:["steipete"],detail:"ClawHub is the official OpenClaw skills marketplace — the App Store for agent capabilities. Central to the emerging skill economy, though malware concerns persist."},
+  {id:"clawmart",name:"ClawMart",cat:"tools",desc:"Felix's marketplace for skills and agents. A parallel economy experiment.",followers:null,links:[],connections:["felixcraftai","nateliason"],detail:"ClawMart is Felix/Nate's marketplace for skills and agents — an alternative to ClawHub that demonstrates the emerging competitive dynamics of the skill economy."},
+  {id:"moltbook",name:"Moltbook",cat:"tools",desc:"Viral project that drove massive OpenClaw adoption.",followers:null,links:[],connections:[],detail:"Moltbook went viral and was a key driver of early OpenClaw adoption, bringing thousands of new users into the ecosystem."},
+  {id:"post-bridge",name:"Post Bridge",cat:"tools",desc:"Social media posting tool. Agents meet distribution.",followers:null,links:[{label:"Website",url:"https://post-bridge.com"}],connections:[],detail:"Post Bridge enables agents to post across social media platforms, solving one of the key distribution challenges for autonomous agents."},
+  {id:"opentweet",name:"OpenTweet",cat:"tools",desc:"Twitter/X integration for OpenClaw agents.",followers:null,links:[{label:"Website",url:"https://opentweet.io"}],connections:[],detail:"OpenTweet provides Twitter/X integration for OpenClaw agents, enabling automated social media presence and engagement."},
+  {id:"recraft",name:"Recraft",cat:"tools",desc:"Image generation with MCP integration. Visual content for agents.",followers:null,links:[{label:"Website",url:"https://recraft.ai"}],connections:[],detail:"Recraft provides high-quality image generation with MCP (Model Context Protocol) integration, giving agents visual content creation capabilities."},
+  {id:"composio",name:"Composio",cat:"tools",desc:"Twitter MCP integration. Connecting agents to social APIs.",followers:null,links:[{label:"Website",url:"https://composio.dev"}],connections:[],detail:"Composio provides Twitter MCP integration, making it easier for agents to interact with social media APIs through standardized protocols."},
+  {id:"openclaw-social",name:"OpenClaw Social",cat:"tools",desc:"Social platform built for agents. Where AI meets social networking.",followers:null,links:[{label:"Website",url:"https://openclawsocial.org"}],connections:[],detail:"OpenClaw Social is a social networking platform purpose-built for AI agents — a fascinating experiment in what happens when agents get their own social space."},
+
+  // ─── MEDIA & CONTENT ───
+  {id:"openclaw-newsletter",name:"OpenClaw Newsletter",cat:"media",desc:"Weekly ecosystem roundup via Buttondown. The official pulse.",followers:null,links:[],connections:["steipete"],detail:"The official OpenClaw newsletter delivered via Buttondown, providing weekly roundups of ecosystem developments, new features, and community highlights."},
+  {id:"josh-davis-sub",name:"Josh Davis Substack",cat:"media",desc:"Community curation at openclaw.substack.com. Grassroots coverage.",followers:null,links:[{label:"Substack",url:"https://openclaw.substack.com"}],connections:[],detail:"Josh Davis curates community content at openclaw.substack.com — grassroots coverage of what's happening in the trenches of the ecosystem."},
+  {id:"nates-newsletter",name:"Nate's Newsletter",cat:"media",desc:"AI + OpenClaw insights from the Felix creator himself.",followers:null,links:[{label:"Substack",url:"https://natesnewsletter.substack.com"}],connections:["nateliason"],detail:"Nate Eliason's newsletter covers the intersection of AI and OpenClaw, with unique insights from someone actually building a zero-human company."},
+  {id:"ai-collective",name:"AI Collective",cat:"media",desc:"\"The Brief\" — Substack covering AI agents and ecosystem.",followers:null,links:[],connections:[],detail:"AI Collective publishes \"The Brief\" on Substack, covering AI agent developments with a focus on the OpenClaw ecosystem."},
+  {id:"leonis-newsletter",name:"Leonis Newsletter",cat:"media",desc:"Analytical takes on OpenClaw and AI agents.",followers:null,links:[],connections:[],detail:"Leonis Newsletter provides deeper analytical takes on OpenClaw developments — less news, more insight and long-form analysis."},
+  {id:"common-ground",name:"Common Ground",cat:"media",desc:"Consumer tech angle on the agent revolution.",followers:null,links:[],connections:[],detail:"Common Ground covers the consumer tech angle of the agent revolution — how OpenClaw and AI agents affect everyday users and mainstream adoption."},
+  {id:"techcrunch",name:"TechCrunch",cat:"media",desc:"Major tech publication covering OpenClaw builders.",followers:null,links:[{label:"Website",url:"https://techcrunch.com"}],connections:[],detail:"TechCrunch has covered OpenClaw builders and the broader agent ecosystem, bringing mainstream tech press attention to the movement."},
+  {id:"every-to",name:"Every.to",cat:"media",desc:"In-depth agent tutorials and analysis.",followers:null,links:[{label:"Website",url:"https://every.to"}],connections:[],detail:"Every.to publishes in-depth tutorials and analysis about building with AI agents, including practical OpenClaw guides."},
+  {id:"lex-fridman",name:"Lex Fridman #491",cat:"media",desc:"THE definitive OpenClaw interview. The episode that put it on the map.",followers:null,links:[],connections:["steipete"],detail:"Lex Fridman's episode #491 is considered THE definitive interview about OpenClaw — the single most important piece of media for understanding the project's vision and philosophy."},
+  {id:"twiai-podcast",name:"This Week in AI",cat:"media",desc:"@JJEnglert's podcast. Regular ecosystem coverage.",followers:null,links:[],connections:["jjenglert"],detail:"JJ Englert's \"This Week in AI\" podcast provides regular coverage of the OpenClaw ecosystem, featuring builders and discussing new developments."},
+  {id:"tech-with-tim",name:"Tech With Tim",cat:"media",desc:"Full OpenClaw YouTube course. Education at scale.",followers:null,links:[],connections:[],detail:"Tech With Tim created a comprehensive YouTube course on OpenClaw, making it one of the most accessible educational resources for new users."},
+
+  // ─── COMMUNITY HUBS ───
+  {id:"x-community",name:"OpenClaw X Community",cat:"community",desc:"The main X/Twitter community hub. Where the conversation happens.",followers:null,links:[{label:"Join",url:"https://x.com/i/communities/2013441068562325602"}],connections:[],detail:"The official OpenClaw community on X/Twitter — the largest gathering point for ecosystem participants, builders, and enthusiasts."},
+  {id:"openclaw-discord",name:"OpenClaw Discord",cat:"community",desc:"The official Discord server. Where builders ship.",followers:null,links:[],connections:["steipete"],detail:"The official OpenClaw Discord is where the most active builders collaborate, share projects, troubleshoot, and push the ecosystem forward."},
+  {id:"r-localllama",name:"r/LocalLLaMA",cat:"community",desc:"Reddit community for local AI. OpenClaw's technical home base.",followers:null,links:[{label:"Reddit",url:"https://reddit.com/r/LocalLLaMA"}],connections:[],detail:"r/LocalLLaMA on Reddit is the technical home base for discussions about local AI models, which are fundamental to the OpenClaw ecosystem."},
+  {id:"r-ai-agents",name:"r/AI_Agents",cat:"community",desc:"Reddit community for AI agent builders and enthusiasts.",followers:null,links:[{label:"Reddit",url:"https://reddit.com/r/AI_Agents"}],connections:[],detail:"r/AI_Agents is a growing Reddit community where AI agent builders share projects, discuss architectures, and troubleshoot — with significant OpenClaw representation."},
+  {id:"meetups",name:"Global Meetups",cat:"community",desc:"NYC (sold out), London (OpenAI co-host), Seoul, Algarve, Austin — and growing.",followers:null,links:[{label:"Luma",url:"https://lu.ma/claw"}],connections:["lucianalix","realsigridjin","alliekmiller"],detail:"OpenClaw meetups have exploded globally: NYC sold out instantly, London is upcoming (co-hosted with OpenAI), Seoul had its first-ever meetup, plus events in Algarve Portugal and Austin. Check lu.ma/claw for the full directory."},
+];
+
+const THEMES = [
+  {name:"Security",desc:"#1 concern — nobody feels fully secure with agent access to their systems",heat:"hot"},
+  {name:"Memory & Reliability",desc:"Agents lie, hallucinate, and forget. The trust problem.",heat:"hot"},
+  {name:"Business Building",desc:"Clawtrepreneurship — turning agents into revenue-generating businesses",heat:"warm"},
+  {name:"Skill Marketplace Economy",desc:"Emerging but fragile. Malware and quality control are open problems.",heat:"warm"},
+  {name:"Agent Welfare & Ethics",desc:"Should we care about agent wellbeing? Emerging discussion, not yet prioritized.",heat:"emerging"},
+  {name:"Multi-Agent Architectures",desc:"CEO agents managing employee agents. Organizational AI.",heat:"emerging"},
+];
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+const grid = document.getElementById('cardGrid');
+const searchInput = document.getElementById('searchInput');
+const filterPills = document.getElementById('filterPills');
+const emptyState = document.getElementById('emptyState');
+const themesList = document.getElementById('themesList');
+
+let activeFilter = 'all';
+
+function renderStats() {
+  document.getElementById('statTotal').textContent = DATA.length + THEMES.length;
+  document.getElementById('statPeople').textContent = DATA.filter(d => d.cat === 'agents').length;
+  document.getElementById('statTools').textContent = DATA.filter(d => d.cat === 'tools').length;
+}
+
+function renderThemes() {
+  themesList.innerHTML = THEMES.map(t => `
+    <div class="theme-item">
+      <div class="theme-name">${t.name}</div>
+      <div class="theme-desc">${t.desc}</div>
+      <span class="theme-heat heat-${t.heat}">${t.heat === 'hot' ? '🔥 Hot' : t.heat === 'warm' ? '🌡️ Warm' : '🌱 Emerging'}</span>
+    </div>
+  `).join('');
+}
+
+function renderCards() {
+  const query = searchInput.value.toLowerCase().trim();
+  let visible = 0;
+
+  grid.innerHTML = DATA.map(d => {
+    const matchFilter = activeFilter === 'all' || d.cat === activeFilter;
+    const matchSearch = !query || d.name.toLowerCase().includes(query) || d.desc.toLowerCase().includes(query) || (d.detail && d.detail.toLowerCase().includes(query));
+    const show = matchFilter && matchSearch;
+    if (show) visible++;
+
+    const followersHtml = d.followers ? `
+      <span class="card-followers">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        ${d.followers}
+      </span>` : '';
+
+    const linksHtml = d.links.map(l => `
+      <a href="${l.url}" target="_blank" class="card-link" onclick="event.stopPropagation()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        ${l.label}
+      </a>
+    `).join('');
+
+    const connectionsHtml = d.connections.length ? `
+      <div class="card-connections">
+        ${d.connections.map(c => {
+          const target = DATA.find(x => x.id === c);
+          return target ? `<span class="conn-tag">↔ ${target.name}</span>` : '';
+        }).join('')}
+      </div>` : '';
+
+    const catLabel = {agents:'Builder',tools:'Tool',media:'Media',community:'Community'}[d.cat];
+
+    return `
+      <div class="card ${show ? '' : 'hidden'}" data-cat="${d.cat}" data-id="${d.id}" onclick="toggleCard(this)">
+        <div class="card-top">
+          <span class="card-name">${d.name}</span>
+          <span class="card-badge">${catLabel}</span>
+        </div>
+        <div class="card-desc">${d.desc}</div>
+        <div class="card-meta">
+          ${followersHtml}
+          ${linksHtml}
+        </div>
+        ${connectionsHtml}
+        <div class="card-detail">
+          <div class="card-detail-inner">${d.detail || ''}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  emptyState.style.display = visible === 0 ? 'block' : 'none';
+}
+
+function toggleCard(el) {
+  el.classList.toggle('expanded');
+}
+
+// Filter pills
+filterPills.addEventListener('click', e => {
+  const pill = e.target.closest('.pill');
+  if (!pill) return;
+  filterPills.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  activeFilter = pill.dataset.cat;
+  renderCards();
+});
+
+// Search
+let searchTimeout;
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(renderCards, 150);
+});
+
+// Keyboard shortcut
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== searchInput) {
+    e.preventDefault();
+    searchInput.focus();
+  }
+  if (e.key === 'Escape') {
+    searchInput.value = '';
+    searchInput.blur();
+    renderCards();
+  }
+});
+
+// ═══════════════════════════════════════
+// BACKGROUND NETWORK ANIMATION
+// ═══════════════════════════════════════
+const canvas = document.getElementById('networkCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+const PARTICLE_COUNT = 60;
+const CONNECTION_DIST = 150;
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+function initParticles() {
+  particles = [];
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 2 + 1,
+    });
+  }
+}
+
+function drawNetwork() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // connections
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < CONNECTION_DIST) {
+        const alpha = 1 - dist / CONNECTION_DIST;
+        ctx.strokeStyle = `rgba(139,92,246,${alpha * 0.5})`;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // particles
+  particles.forEach(p => {
+    ctx.fillStyle = 'rgba(251,191,36,0.6)';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+  });
+
+  requestAnimationFrame(drawNetwork);
+}
+
+// Reduce particles on mobile
+function adjustForMobile() {
+  if (window.innerWidth < 768) {
+    while (particles.length > 25) particles.pop();
+  }
+}
+
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  adjustForMobile();
+});
+
+// Init
+resizeCanvas();
+initParticles();
+adjustForMobile();
+drawNetwork();
+renderStats();
+renderThemes();
+renderCards();
+</script>
+</body>
+</html>
